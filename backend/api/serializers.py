@@ -15,8 +15,18 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
+# Add this to your serializer
 class NoteSerializer(serializers.ModelSerializer):
+    is_author = serializers.SerializerMethodField()
+    created_at = serializers.DateTimeField(read_only=True, format="%Y-%m-%d %H:%M:%S")
+    author = serializers.ReadOnlyField(source='author.username')
+
     class Meta:
         model = Note
-        fields = ["id", "title", "content", "created_at", "author"]
-        extra_kwargs = {"author": {"read_only": True}}
+        fields = ['id', 'title', 'content', 'author', 'is_author', 'created_at']
+
+    def get_is_author(self, obj):
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            return obj.author == request.user
+        return False

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import api from "../api";
 import Note from "../components/Note"
 import "../styles/Home.css"
+import Logout from "../components/Logout";
 
 function    Home() {
     const [notes, setNotes] = useState([]);
@@ -34,21 +35,31 @@ function    Home() {
             .catch((error) => alert(error));
     };
 
+    // in Home.jsx, update the createNote function:
     const createNote = (e) => {
         e.preventDefault();
         api
             .post("/api/notes/", { content, title })
             .then((res) => {
-                if (res.status === 201) alert("Note created!");
-                else alert("Failed to make note.");
-                getNotes();
+                if (res.status === 201) {
+                    alert("Note created!");
+                    setContent("");  // Clear form
+                    setTitle("");    // Clear form
+                    getNotes();      // Refresh notes list
+                } else {
+                    alert("Failed to make note.");
+                }
             })
-            .catch((err) => alert(err));
+            .catch((err) => {
+                console.error(err);
+                alert(err.response?.data?.detail || "Error creating note");
+            });
     };
 
     return (
         <div>
             <div>
+                <Logout />
                 <h2>Notes</h2>
                 {notes.map((note) => (
                     <Note note={note} onDelete={deleteNote} key={note.id} />
